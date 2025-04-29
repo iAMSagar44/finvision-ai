@@ -46,8 +46,8 @@ Validates the generated SQL query based on the user's question. This ensures que
 Execute the generated SQL query based on the user's financial question against the database for data queries. Returns the query results in a structured format.
 
 ### View Layer Orchestration
-#### CashFlowView Workflow
-The CashFlowView implements a sophisticated workflow that orchestrates multiple AI agents to process financial queries:
+#### Personal Finance Assistant Workflow
+The Personal Finance Assistant implements a sophisticated workflow that orchestrates multiple AI agents to process financial queries:
 
 1. **Initial Query Reception**: Uses the frontDeskService agent to interpret and acknowledge the user's financial question
 2. **Query Analysis and Context Check**:
@@ -62,6 +62,8 @@ The CashFlowView implements a sophisticated workflow that orchestrates multiple 
    - This loop continues up to 3 times until a valid query is generated or all retries are exhausted
 4. **Data Retrieval**: Utilizes the getAggregatedData agent to execute the validated query (only after successful validation)
 5. **Response Formatting**: Processes the retrieved data into a user-friendly format
+
+![Image 6](../../images/arch.png)
 
 This orchestration pattern ensures a seamless flow from user input to meaningful financial insights, with each agent specializing in its specific task while maintaining a cohesive interaction model. The automatic retry mechanism for query generation demonstrates the system's self-healing capabilities, as the LLM intelligently refines queries based on validation feedback without requiring user intervention. The addition of conversation memory through queryAnalyserService improves response times and reduces redundant processing by reusing previously computed answers when appropriate.
 
