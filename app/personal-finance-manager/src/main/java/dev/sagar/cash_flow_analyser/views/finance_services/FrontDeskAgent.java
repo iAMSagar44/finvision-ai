@@ -2,7 +2,7 @@ package dev.sagar.cash_flow_analyser.views.finance_services;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
-import org.springframework.ai.chat.memory.InMemoryChatMemory;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -31,10 +31,11 @@ class FrontDeskAgent {
           """;
 
   public FrontDeskAgent(ChatClient.Builder builder) {
-    this.chatClient =
-        builder.defaultAdvisors(new PromptChatMemoryAdvisor(new InMemoryChatMemory()))
-            .defaultSystem(SYSTEM_PROMPT)
-            .defaultOptions(OpenAiChatOptions.builder().temperature(0.7).build()).build();
+    this.chatClient = builder
+        .defaultAdvisors(
+            PromptChatMemoryAdvisor.builder(MessageWindowChatMemory.builder().build()).build())
+        .defaultSystem(SYSTEM_PROMPT)
+        .defaultOptions(OpenAiChatOptions.builder().temperature(0.7).build()).build();
   }
 
   public Flux<String> acknowledgeQuestion(String userQuestion) {

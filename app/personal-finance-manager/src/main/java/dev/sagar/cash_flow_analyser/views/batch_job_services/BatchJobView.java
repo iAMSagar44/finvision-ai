@@ -32,7 +32,7 @@ public class BatchJobView extends VerticalLayout {
   public BatchJobView(BatchJobService batchJobService, ChatMemory memory,
       ChatClient.Builder builder) {
     var chatClient = builder.defaultTools(batchJobService)
-        .defaultAdvisors(new MessageChatMemoryAdvisor(memory)).build();
+        .defaultAdvisors(MessageChatMemoryAdvisor.builder(memory).build()).build();
 
     var messageList = new VerticalLayout();
     var scroller = new Scroller(messageList);
@@ -48,8 +48,7 @@ public class BatchJobView extends VerticalLayout {
       messageList.add(assistantMessage);
       chatClient.prompt()
           .system(s -> s.text(systemPromptResource).param("date",
-              LocalDate.now()
-                  .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG))))
+              LocalDate.now().format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG))))
           .user(event.getValue()).stream().content()
           .subscribe(assistantMessage::appendMarkdownAsync);
     });

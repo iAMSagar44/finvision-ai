@@ -16,8 +16,8 @@ import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.model.tool.ToolCallingChatOptions;
 import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.model.tool.ToolExecutionResult;
+import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
-import org.springframework.ai.tool.ToolCallbacks;
 import org.springframework.ai.util.json.JsonParser;
 import org.vaadin.firitin.components.messagelist.MarkdownMessage;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -85,18 +85,17 @@ public class CashFlowView extends VerticalLayout {
 
           """;
 
-  public CashFlowView(QueryAnalyserAgent queryAnalyserService,
-      SQLQueryAgent sqlQueryService, DatabaseService databaseService,
-      SQLEvaluatorAgent evaluatorService, ChatMemory memory,
+  public CashFlowView(QueryAnalyserAgent queryAnalyserService, SQLQueryAgent sqlQueryService,
+      DatabaseService databaseService, SQLEvaluatorAgent evaluatorService, ChatMemory memory,
       FrontDeskAgent frontDeskService, StreamingChatModel chatModel) {
 
     this.chatModel = chatModel;
     this.chatMemoryService = new ChatMemoryService(memory, 5);
-    ToolCallback[] databaseTools = ToolCallbacks.from(queryAnalyserService,
-        sqlQueryService, evaluatorService, databaseService);
+    ToolCallback[] databaseTools = ToolCallbacks.from(queryAnalyserService, sqlQueryService,
+        evaluatorService, databaseService);
 
-    ChatOptions chatOptions = ToolCallingChatOptions.builder()
-        .toolCallbacks(databaseTools).internalToolExecutionEnabled(false).build();
+    ChatOptions chatOptions = ToolCallingChatOptions.builder().toolCallbacks(databaseTools)
+        .internalToolExecutionEnabled(false).build();
 
     this.frontDeskService = frontDeskService;
 
@@ -116,8 +115,7 @@ public class CashFlowView extends VerticalLayout {
       var systemMessage = systemPromptTemplate.createMessage(Map.of("date",
           LocalDate.now().format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG))));
 
-      Prompt prompt =
-          new Prompt(List.of(systemMessage, new UserMessage(userMessage)), chatOptions);
+      Prompt prompt = new Prompt(List.of(systemMessage, new UserMessage(userMessage)), chatOptions);
 
 
       Flux<ChatResponse> chatResponse = chatModel.stream(prompt);
@@ -140,20 +138,19 @@ public class CashFlowView extends VerticalLayout {
     add(messageInput);
   }
 
-  private Flux<String> processStream(Flux<ChatResponse> chatResponse,
-      Prompt initialPrompt) {
+  private Flux<String> processStream(Flux<ChatResponse> chatResponse, Prompt initialPrompt) {
     ToolCallingManager toolCallingManager = ToolCallingManager.builder().build();
 
-    return chatResponse.flatMap(response -> handleToolCallsRecursively(response,
-        initialPrompt, toolCallingManager));
+    return chatResponse.flatMap(
+        response -> handleToolCallsRecursively(response, initialPrompt, toolCallingManager));
   }
 
   private Flux<String> handleToolCallsRecursively(ChatResponse response, Prompt prompt,
       ToolCallingManager toolCallingManager) {
     if (!response.hasToolCalls()) {
       logger.trace("No tool calls found in the response");
-      Flux<String> chatResponseStream = Flux
-          .just((response.getResult() == null || response.getResult().getOutput() == null
+      Flux<String> chatResponseStream =
+          Flux.just((response.getResult() == null || response.getResult().getOutput() == null
               || response.getResult().getOutput().getText() == null) ? ""
                   : response.getResult().getOutput().getText());
       return chatResponseStream;
@@ -183,8 +180,7 @@ public class CashFlowView extends VerticalLayout {
         // The first run of the tool call will have feedback as empty
         // so removing it and the sqlQuery from the arguments
         // to avoid sending it to the client
-        Map<String, Object> json =
-            JsonParser.fromJson(arguments, new TypeReference<>() {});
+        Map<String, Object> json = JsonParser.fromJson(arguments, new TypeReference<>() {});
         if (json.get("feedback") instanceof String feedback
             && (feedback.isBlank() || feedback.isEmpty())) {
           json.remove("feedback");
@@ -240,9 +236,8 @@ public class CashFlowView extends VerticalLayout {
       Prompt newPrompt = new Prompt(result.conversationHistory(), prompt.getOptions());
 
       // Re-stream using new prompt and recurse
-      return chatModel.stream(newPrompt)
-          .flatMap(nextResponse -> handleToolCallsRecursively(nextResponse, newPrompt,
-              toolCallingManager));
+      return chatModel.stream(newPrompt).flatMap(
+          nextResponse -> handleToolCallsRecursively(nextResponse, newPrompt, toolCallingManager));
     }).subscribeOn(Schedulers.boundedElastic()));
   }
 

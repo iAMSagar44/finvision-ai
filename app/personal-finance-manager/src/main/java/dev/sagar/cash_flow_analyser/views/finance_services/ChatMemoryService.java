@@ -38,8 +38,7 @@ class ChatMemoryService {
    * Creates a new ChatMessageStore with provided ChatMemory and default settings
    */
   public ChatMemoryService(ChatMemory chatMemory) {
-    this(chatMemory, DEFAULT_CHAT_MEMORY_CONVERSATION_ID,
-        DEFAULT_CHAT_MEMORY_RESPONSE_SIZE);
+    this(chatMemory, DEFAULT_CHAT_MEMORY_CONVERSATION_ID, DEFAULT_CHAT_MEMORY_RESPONSE_SIZE);
   }
 
   /**
@@ -93,22 +92,20 @@ class ChatMemoryService {
    */
   public String getConversationMessages() {
 
-    List<Message> memoryMessages = getConversationMessages(conversationId, windowSize);
+    List<Message> memoryMessages = getConversationMessages(conversationId);
 
-    String memory = (memoryMessages != null) ? memoryMessages.stream()
-        .filter(m -> m.getMessageType() == MessageType.USER
-            || m.getMessageType() == MessageType.ASSISTANT)
+    String memory = (memoryMessages != null) ? memoryMessages.stream().filter(
+        m -> m.getMessageType() == MessageType.USER || m.getMessageType() == MessageType.ASSISTANT)
         .map(m -> m.getMessageType() + ":" + ((Content) m).getText())
         .collect(Collectors.joining(System.lineSeparator())) : "";
 
-    logger.debug(
-        "Chat Memory current size: {} \n Messages in memory for conversation id {}: {}",
+    logger.debug("Chat Memory current size: {} \n Messages in memory for conversation id {}: {}",
         memoryMessages.size(), getConversationId(), memory);
     return memory;
   }
 
   public List<Message> getMemoryMessages() {
-    return getConversationMessages(conversationId, windowSize);
+    return getConversationMessages(conversationId);
   }
 
   /**
@@ -118,10 +115,9 @@ class ChatMemoryService {
    * @param limit maximum number of messages to return
    * @return list of messages filtered by USER and ASSISTANT types
    */
-  private List<Message> getConversationMessages(String conversationId, int limit) {
-    return chatMemory.get(conversationId, limit).stream()
-        .filter(m -> m.getMessageType() == MessageType.USER
-            || m.getMessageType() == MessageType.ASSISTANT)
+  private List<Message> getConversationMessages(String conversationId) {
+    return chatMemory.get(conversationId).stream().filter(
+        m -> m.getMessageType() == MessageType.USER || m.getMessageType() == MessageType.ASSISTANT)
         .toList();
   }
 
