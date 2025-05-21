@@ -8,7 +8,6 @@ import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -60,15 +59,12 @@ public class PersonalFinanceService {
 	@Value("${app.database.type}")
 	private String databaseType;
 
-	private JdbcClient jdbcClient;
-
 	private final SQLEvaluatorService evaluationService;
 
 	private final DatabaseService databaseService;
 
-	public PersonalFinanceService(JdbcClient jdbcClient, SQLEvaluatorService evaluationService,
+	public PersonalFinanceService(SQLEvaluatorService evaluationService,
 			DatabaseService databaseService) {
-		this.jdbcClient = jdbcClient;
 		this.evaluationService = evaluationService;
 		this.databaseService = databaseService;
 	}

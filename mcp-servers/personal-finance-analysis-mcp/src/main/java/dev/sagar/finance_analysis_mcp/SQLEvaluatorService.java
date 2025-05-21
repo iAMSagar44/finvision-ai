@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -56,11 +57,8 @@ class SQLEvaluatorService {
 
 	private final ChatClient chatClient;
 
-	public SQLEvaluatorService(ChatClient.Builder builder, DatabaseService databaseService) {
-		this.chatClient = builder
-				.defaultOptions(
-						OpenAiChatOptions.builder().model("o4-mini").temperature(1D).build())
-				.build();
+	public SQLEvaluatorService(OpenAiChatModel openAiChatModel, DatabaseService databaseService) {
+		this.chatClient = ChatClient.create(openAiChatModel);
 		this.databaseService = databaseService;
 	}
 
@@ -72,6 +70,7 @@ class SQLEvaluatorService {
 		var categories = String.join(", ", databaseService.getCategories());
 
 		var evaluationResponse = chatClient.prompt()
+				.options(OpenAiChatOptions.builder().model("o4-mini").temperature(1D).build())
 				.system(systemSpec -> systemSpec.text(systemPromptTemplate).param("database_type",
 						databaseType))
 				.user(userSpec -> userSpec.text(USER_MESSAGE_TEMPLATE)
